@@ -1,0 +1,38 @@
+body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 350px;
+    max-height: 400px;
+    margin: 0 auto;
+}
+.timeline-card { transition: transform 0.2s; }
+.timeline-card:hover { transform: translateY(-5px); }
+/* Custom scrollbar for tech feel */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #1f2937; }
+::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
+
+/* Loading Animation */
+.typing-indicator span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: #06b6d4;
+    border-radius: 50%;
+    animation: typing 1s infinite;
+    margin: 0 2px;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Zero-Friction Transformation Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="text-gray-800">
+
+    <!-- PALETTE: "Cyberpunk Fitness" - Cyan/Blue/Dark Grey/White -->
+    <!-- Primary: #06b6d4 (Cyan-500), Secondary: #3b82f6 (Blue-500), Dark: #111827 (Gray-900), Accent: #f472b6 (Pink-400 for contrast) -->
+
+    <!-- NAVIGATION -->
+    <nav class="bg-gray-900 text-white sticky top-0 z-50 shadow-lg border-b-4 border-cyan-500">
+        <div class="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="font-extrabold text-2xl tracking-tighter">ZERO<span class="text-cyan-400">FRICTION</span></div>
+            <div class="flex items-center gap-4">
+                 <div class="relative group">
+                    <input type="password" id="apiKeyInput" placeholder="Paste Gemini API Key" class="bg-gray-800 border border-gray-700 text-xs rounded px-3 py-2 text-cyan-400 focus:outline-none focus:border-cyan-500 w-48 transition-all">
+                    <div class="absolute hidden group-hover:block bg-gray-800 text-xs p-2 rounded -bottom-10 right-0 w-48 z-50 shadow-xl border border-gray-700">Needed for AI Tools below.</div>
+                </div>
+                <div class="text-sm font-light hidden md:block">Status: <span id="systemStatusText" class="text-yellow-400 font-bold">CALIBRATING...</span></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION: CONFIG -->
+    <header class="bg-gray-900 text-white py-12 md:py-20 border-b border-gray-800">
+        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+                <h1 class="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
+                    The Lazy Engineer's <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">System Patch</span>
+                </h1>
+                
+                <!-- DYNAMIC INPUT FORM -->
+                <div class="bg-gray-800 p-6 rounded-xl border-l-4 border-cyan-500 shadow-xl mb-8">
+                    <h3 class="text-cyan-400 font-bold mb-4 uppercase text-sm tracking-wider">System Configuration</h3>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Weight (kg)</label>
+                            <input type="number" id="inputWeight" value="70" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white font-mono focus:border-cyan-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Height (cm)</label>
+                            <input type="number" id="inputHeight" value="170" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white font-mono focus:border-cyan-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-400 mb-1">Age (yrs)</label>
+                            <input type="number" id="inputAge" value="30" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white font-mono focus:border-cyan-500 focus:outline-none">
+                        </div>
+                    </div>
+                    <button onclick="updateSystemData()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 rounded transition shadow-lg shadow-cyan-500/30">
+                        Run System Diagnostics ⚡
+                    </button>
+                </div>
+
+                <p class="text-lg text-gray-300">
+                    You don't need motivation; you need a protocol. We are not cooking. We are not running marathons. We are refactoring your inputs based on the data above.
+                </p>
+            </div>
+            
+            <!-- BMI GAUGE -->
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-2xl relative">
+                <div class="absolute top-4 right-4 text-xs text-gray-500">Live Metric</div>
+                <div class="chart-container">
+                    <canvas id="bmiGauge"></canvas>
+                </div>
+                <p id="bmiSubtitle" class="text-center text-xs text-gray-400 mt-2">Current System Status: Calculating...</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 space-y-24">
+
+        <!-- SECTION 1: THE REALITY CHECK -->
+        <section>
+            <div class="border-l-8 border-cyan-500 pl-6 mb-10">
+                <h2 class="text-3xl font-bold text-gray-900">01. The "Sedentary Gap" Analysis</h2>
+                <p class="mt-2 text-gray-600 max-w-2xl">
+                    As a dev, you sit. A lot. The human body is a mechanical engine; if you park a car for 10 years, the engine seizes. The graph below dynamically compares your calculated "Energy Expenditure" vs. the "Maintenance Mode" required for basic health based on your inputs.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- CHART: Activity Comparison -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500">
+                    <h3 class="font-bold text-xl mb-4 text-gray-800">Projected Caloric Burn vs. Intake</h3>
+                    <div class="chart-container">
+                        <canvas id="calorieChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500">
+                        <strong>Insight:</strong> <span id="calorieInsight">Calculating...</span>
+                    </p>
+                </div>
+
+                <!-- INFO: The Risks -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-pink-500 flex flex-col justify-center">
+                    <h3 class="font-bold text-xl mb-6 text-gray-800">System Critical Warnings</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="text-3xl mr-4">🫀</div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">Cardiovascular Load</h4>
+                                <p class="text-sm text-gray-600" id="cardioText">At your current weight, your heart is working overtime. Resting Heart Rate is likely elevated.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="text-3xl mr-4">🦴</div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">Structural Integrity</h4>
+                                <p class="text-sm text-gray-600" id="jointText">Joints are under compression. High impact cardio (running) is banned. Focus on low-impact torque.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="text-3xl mr-4">🧠</div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">Cognitive Latency</h4>
+                                <p class="text-sm text-gray-600">Heavy processed food spikes blood sugar, leading to "Brain Fog" during coding sessions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: NUTRITION STRATEGY -->
+        <section>
+            <div class="border-l-8 border-blue-500 pl-6 mb-10">
+                <h2 class="text-3xl font-bold text-gray-900">02. The "Outsourcing" Diet Protocol</h2>
+                <p class="mt-2 text-gray-600 max-w-2xl">
+                    You hate cooking. Fine. We lean into it. The strategy isn't "Cook Chicken Breast"; it's <strong>"Better Buying Decisions"</strong>. We treat takeout menus like API documentation—some endpoints (foods) are deprecated (junk), others are optimized.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <!-- CHART: Junk vs Volume -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="font-bold text-xl mb-4 text-gray-800">The Volume Hack: Satiety per Calorie</h3>
+                    <div class="chart-container">
+                        <canvas id="nutritionScatter"></canvas>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500">
+                        <strong>The Hack:</strong> We want High Volume (Y-axis) and Low Calorie Density (X-axis). Currently, you eat in the "Danger Zone" (Burgers/Pizza). We are moving to the "Volume Zone" (Burrito Bowls, Salads with protein).
+                    </p>
+                </div>
+
+                <!-- ACTIONABLE: The Swap List -->
+                <div class="bg-gray-900 text-white p-6 rounded-xl shadow-md">
+                    <h3 class="font-bold text-xl mb-4 text-cyan-400">The Takeout Refactor List</h3>
+                    <div class="space-y-4">
+                        <div class="p-3 bg-gray-800 rounded border-l-4 border-red-500 opacity-75">
+                            <div class="text-xs text-red-400 font-bold uppercase">Deprecated (Avoid)</div>
+                            <div class="font-bold">Deep Fried Anything</div>
+                            <div class="text-xs text-gray-400">Tempura, Fries, Fried Chicken. (Too dense).</div>
+                        </div>
+                        <div class="flex justify-center text-2xl">⬇️ REFACTOR TO ⬇️</div>
+                        <div class="p-3 bg-gray-800 rounded border-l-4 border-green-500">
+                            <div class="text-xs text-green-400 font-bold uppercase">Optimized (Order This)</div>
+                            <div class="font-bold">Grilled / Roasted Proteins</div>
+                            <div class="text-xs text-gray-400">Double Chicken/Steak, Grilled Fish, Tandoori.</div>
+                        </div>
+                         <div class="p-3 bg-gray-800 rounded border-l-4 border-yellow-500 mt-4">
+                            <div class="text-xs text-yellow-400 font-bold uppercase">The Golden Rule</div>
+                            <div class="font-bold">"Double Protein, Half Carbs"</div>
+                            <div class="text-xs text-gray-400">When ordering a bowl/plate: Ask for double meat, and ask them to fill the rest with veggies instead of extra rice.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: WORKOUT PROTOCOL -->
+        <section>
+            <div class="border-l-8 border-pink-500 pl-6 mb-10">
+                <h2 class="text-3xl font-bold text-gray-900">03. The "Lazy" Engineer's Workout</h2>
+                <p class="mt-2 text-gray-600 max-w-2xl">
+                    You have 4 days of zero action. We start with <strong>"Movement Snacking"</strong>. You don't go to the gym for 2 hours. You execute 5 minutes of maintenance code every few hours. This exploits your work breaks.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- CARD 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-cyan-500">
+                    <div class="text-4xl mb-4">🪑</div>
+                    <h3 class="font-bold text-lg">The "Compile" Routine</h3>
+                    <p class="text-sm text-gray-500 mb-4">Do this every time you wait for code to build or deploy.</p>
+                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
+                        <li><strong>10 Desk Pushups:</strong> Hands on desk, solid core.</li>
+                        <li><strong>20 Air Squats:</strong> Sit down on chair, stand up immediately. Repeat.</li>
+                        <li><strong>Doorframe Stretch:</strong> Open up that chest from hunching.</li>
+                    </ul>
+                </div>
+
+                <!-- CARD 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500">
+                    <div class="text-4xl mb-4">🚶</div>
+                    <h3 class="font-bold text-lg">The "Debug" Walk</h3>
+                    <p class="text-sm text-gray-500 mb-4">Stuck on a bug? Cognitive function improves with blood flow.</p>
+                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
+                        <li><strong>Rule:</strong> If you are stuck for >15 mins, you MUST walk outside for 10 mins.</li>
+                        <li><strong>Audio:</strong> No tech podcasts. Music or silence.</li>
+                        <li><strong>Goal:</strong> Hit 5,000 steps daily (starting baseline).</li>
+                    </ul>
+                </div>
+
+                <!-- CARD 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-purple-500">
+                    <div class="text-4xl mb-4">🏋️</div>
+                    <h3 class="font-bold text-lg">Weekly Strength Batch</h3>
+                    <p class="text-sm text-gray-500 mb-4">2 Days a week. 20 Mins. Basic maintenance.</p>
+                    <ul class="text-sm space-y-2 list-disc list-inside text-gray-700">
+                        <li><strong>Dumbbell Goblet Squats:</strong> 3 sets x 10 reps.</li>
+                        <li><strong>Dumbbell Overhead Press:</strong> 3 sets x 10 reps.</li>
+                        <li><strong>Dumbbell Rows:</strong> 3 sets x 10 reps (Back health).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- CHART: Progressive Overload -->
+            <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
+                <h3 class="font-bold text-xl mb-4 text-gray-800">Projected Strength Acquisition</h3>
+                <div class="chart-container">
+                    <canvas id="strengthChart"></canvas>
+                </div>
+                <p class="mt-4 text-sm text-gray-500">
+                    <strong>The Logic:</strong> We use "Linear Periodization". We start insanely light to build the habit. We increase difficulty slowly. The blue line is effort, the cyan area is results.
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 4: THE SCHEDULE -->
+        <section>
+            <div class="border-l-8 border-gray-800 pl-6 mb-10">
+                <h2 class="text-3xl font-bold text-gray-900">04. The Daily Runtime Loop</h2>
+                <p class="mt-2 text-gray-600 max-w-2xl">
+                    You said you have no schedule. Here is your default config. It is designed to be low-stress.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden timeline-card">
+                    <div class="bg-gray-200 p-4 w-full md:w-32 flex items-center justify-center font-bold text-gray-600">08:00 AM</div>
+                    <div class="p-4 border-l-4 border-cyan-500 flex-1">
+                        <h4 class="font-bold text-gray-900">Hydration Boot Sequence</h4>
+                        <p class="text-sm text-gray-600">Wake up. Drink 500ml water immediately. No coffee yet. 10 Min Walk (get sunlight).</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden timeline-card">
+                    <div class="bg-gray-200 p-4 w-full md:w-32 flex items-center justify-center font-bold text-gray-600">09:00 AM</div>
+                    <div class="p-4 border-l-4 border-blue-500 flex-1">
+                        <h4 class="font-bold text-gray-900">Deep Work + Coffee</h4>
+                        <p class="text-sm text-gray-600">Black coffee or with splash of milk (no sugar bombs). Coding block.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden timeline-card">
+                    <div class="bg-gray-200 p-4 w-full md:w-32 flex items-center justify-center font-bold text-gray-600">12:30 PM</div>
+                    <div class="p-4 border-l-4 border-green-500 flex-1">
+                        <h4 class="font-bold text-gray-900">Refuel (Order In)</h4>
+                        <p class="text-sm text-gray-600"><strong>The Order:</strong> Chipotle Bowl (No rice, extra beans, double chicken, salsa, guac) OR Sweetgreen Salad (Double protein). NO SODA.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden timeline-card">
+                    <div class="bg-gray-200 p-4 w-full md:w-32 flex items-center justify-center font-bold text-gray-600">04:00 PM</div>
+                    <div class="p-4 border-l-4 border-yellow-500 flex-1">
+                        <h4 class="font-bold text-gray-900">The "Snack" Break</h4>
+                        <p class="text-sm text-gray-600">Movement Snack (Pushups/Squats). Protein Shake or Greek Yogurt (Store bought). Avoid the chips.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row bg-white rounded-lg shadow-sm overflow-hidden timeline-card">
+                    <div class="bg-gray-200 p-4 w-full md:w-32 flex items-center justify-center font-bold text-gray-600">07:30 PM</div>
+                    <div class="p-4 border-l-4 border-purple-500 flex-1">
+                        <h4 class="font-bold text-gray-900">Dinner Protocol</h4>
+                        <p class="text-sm text-gray-600">Order: Grilled Chicken/Steak + Veggies. Keep carbs low at night to manage insulin sensitivity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: AI SUPPORT MODULES -->
+        <section id="ai-modules">
+            <div class="border-l-8 border-yellow-400 pl-6 mb-10">
+                <h2 class="text-3xl font-bold text-gray-900">05. AI Support Modules</h2>
+                <p class="mt-2 text-gray-600 max-w-2xl">
+                    Real-time intelligence for your transformation. Powered by Google Gemini. <br>
+                    <span class="text-xs text-gray-400">Requires API Key in top navigation bar.</span>
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- MODULE A: Takeout Refactor -->
+                <div class="bg-gray-900 text-white p-6 rounded-xl shadow-xl border border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">🍔</div>
+                    <h3 class="font-bold text-xl mb-2 text-cyan-400">The Takeout Refactor Tool</h3>
+                    <p class="text-xs text-gray-400 mb-4">Paste your intended junk food order. AI will generate a diet-compliant "patch".</p>
+                    
+                    <textarea id="foodInput" class="w-full bg-gray-800 text-white rounded p-3 text-sm mb-4 border border-gray-700 focus:border-cyan-500 outline-none" rows="3" placeholder="e.g. McDonald's Big Mac Meal with large fries and coke..."></textarea>
+                    
+                    <button onclick="callGeminiFood()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-2 rounded transition shadow-lg flex justify-center items-center gap-2">
+                        <span>Run Optimization Patch</span> <span>✨</span>
+                    </button>
+
+                    <div id="foodResult" class="mt-4 p-3 bg-gray-800 rounded min-h-[60px] text-sm text-gray-300 hidden">
+                        <!-- Result goes here -->
+                    </div>
+                </div>
+
+                <!-- MODULE B: Bio-Mechanics Debugger -->
+                <div class="bg-gray-900 text-white p-6 rounded-xl shadow-xl border border-gray-700 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">🦴</div>
+                    <h3 class="font-bold text-xl mb-2 text-pink-400">Bio-Mechanics Debugger</h3>
+                    <p class="text-xs text-gray-400 mb-4">Describe a pain point or exercise form issue. AI will check your "hardware" integrity.</p>
+                    
+                    <textarea id="fitnessInput" class="w-full bg-gray-800 text-white rounded p-3 text-sm mb-4 border border-gray-700 focus:border-pink-500 outline-none" rows="3" placeholder="e.g. My lower back hurts when I do dumbbell rows..."></textarea>
+                    
+                    <button onclick="callGeminiFitness()" class="w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-2 rounded transition shadow-lg flex justify-center items-center gap-2">
+                        <span>Debug Form</span> <span>✨</span>
+                    </button>
+
+                    <div id="fitnessResult" class="mt-4 p-3 bg-gray-800 rounded min-h-[60px] text-sm text-gray-300 hidden">
+                        <!-- Result goes here -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-10 text-center">
+        <p class="mb-4">"The only bad workout is the one that didn't happen."</p>
+        <p class="text-sm">Generated for the Lazy Engineer Transformation Protocol</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

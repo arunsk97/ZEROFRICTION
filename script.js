@@ -1,19 +1,20 @@
-// --- GLOBAL VARIABLES FOR STATE ---
+// --- GLOBAL VARIABLES ---
 let currentWeight = 140;
 let currentHeight = 184;
 let currentAge = 30;
+let isVegetarian = false;
 let bmiChartInstance = null;
 let calorieChartInstance = null;
 let strengthChartInstance = null;
 
-// --- GEMINI API INTEGRATION ---
+// --- GEMINI API CALLER ---
 async function generateGeminiContent(systemPrompt, userPrompt, resultDivId) {
     const apiKey = document.getElementById('apiKeyInput').value.trim();
     const resultDiv = document.getElementById(resultDivId);
 
     if (!apiKey) {
         resultDiv.classList.remove('hidden');
-        resultDiv.innerHTML = '<span class="text-red-400">Error: Please enter your Google Gemini API Key in the top navigation bar.</span>';
+        resultDiv.innerHTML = '<span class="text-red-400 font-bold">Error: API Key Missing. Please enter it in Section 05 above.</span>';
         return;
     }
 
@@ -23,17 +24,14 @@ async function generateGeminiContent(systemPrompt, userPrompt, resultDivId) {
 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-    // Inject context into system prompt
-    const context = `Context: User is ${currentWeight}kg, ${currentHeight}cm tall, software engineer. `;
+    // Inject context
+    const dietContext = isVegetarian ? "User is Vegetarian. " : "User eats meat. ";
+    const context = `Context: User is ${currentWeight}kg, ${currentHeight}cm tall, software engineer. ${dietContext}`;
     const finalSystemPrompt = context + systemPrompt;
 
     const payload = {
-        contents: [{
-            parts: [{ text: userPrompt }]
-        }],
-        systemInstruction: {
-            parts: [{ text: finalSystemPrompt }]
-        }
+        contents: [{ parts: [{ text: userPrompt }] }],
+        systemInstruction: { parts: [{ text: finalSystemPrompt }] }
     };
 
     try {
@@ -43,106 +41,144 @@ async function generateGeminiContent(systemPrompt, userPrompt, resultDivId) {
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
         const data = await response.json();
         const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
-        
-        // Parse Markdown
         resultDiv.innerHTML = marked.parse(rawText);
 
     } catch (error) {
         console.error(error);
-        resultDiv.innerHTML = `<span class="text-red-400">Connection Failed: ${error.message}. Check your API Key.</span>`;
+        resultDiv.innerHTML = `<span class="text-red-400">Connection Failed: ${error.message}</span>`;
     }
 }
 
+// --- SPECIFIC WRAPPERS ---
 function callGeminiFood() {
     const input = document.getElementById('foodInput').value;
     if(!input) return;
-    const systemPrompt = "You are a pragmatic nutritionist for a 'lazy software engineer' who hates cooking. Your goal is to optimize takeout orders. The user provides a food item or restaurant order. You must Output a 'Refactored Patch': a specific modification to the order to make it higher protein, lower calorie, and moderate carb (e.g., 'Swap bun for lettuce wrap'). Use developer terminology (e.g., 'Deprecated', 'Refactor', 'Optimization'). Keep it short, punchy, and under 60 words.";
+    const systemPrompt = "You are a pragmatic nutritionist for a 'lazy software engineer' who hates cooking. User provides a junk food order. Output a 'Refactored Patch': a specific modification to make it higher protein, lower calorie. Suggest vegetarian protein swaps if context implies. Use dev terminology. Keep it under 60 words.";
     generateGeminiContent(systemPrompt, input, 'foodResult');
 }
 
 function callGeminiFitness() {
     const input = document.getElementById('fitnessInput').value;
     if(!input) return;
-    const systemPrompt = "You are an expert strength coach specializing in biomechanics and injury prevention for sedentary office workers. The user describes a pain or form issue. Output a 'Debug Log': 3 bullet points on how to fix the form or alleviate the pain immediately. Focus on safety and simple cues. Use tech/engineering metaphors. Keep it under 60 words.";
+    const systemPrompt = "Expert strength coach for sedentary engineers. User describes pain/form. Output 'Debug Log': 3 bullet points to fix form/alleviate pain. Focus on safety. Use tech metaphors. Keep it under 60 words.";
     generateGeminiContent(systemPrompt, input, 'fitnessResult');
 }
 
 
-// --- DYNAMIC LOGIC ---
-
+// --- MAIN SYSTEM LOGIC ---
 function updateSystemData() {
     // 1. Get Values
-    currentWeight = parseFloat(document.getElementById('inputWeight').value) || 140;
-    currentHeight = parseFloat(document.getElementById('inputHeight').value) || 184;
-    currentAge = parseFloat(document.getElementById('inputAge').value) || 30;
+    const wInput = document.getElementById('inputWeight').value;
+    const hInput = document.getElementById('inputHeight').value;
+    const aInput = document.getElementById('inputAge').value;
+    
+    if (!wInput || !hInput) {
+        alert("Please enter Weight and Height.");
+        return;
+    }
 
-    // 2. Calculate BMI
-    // BMI = kg / m^2
+    currentWeight = parseFloat(wInput);
+    currentHeight = parseFloat(hInput);
+    currentAge = parseFloat(aInput) || 30;
+    isVegetarian = document.getElementById('inputDiet').value === 'veg';
+
+    // 2. Reveal Dashboard
+    const contentDiv = document.getElementById('dashboard-content');
+    contentDiv.classList.remove('hidden');
+    
+    // Scroll to start of content
+    setTimeout(() => {
+        contentDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Fade in sections
+        document.querySelectorAll('.fade-in-section').forEach(sec => sec.classList.add('is-visible'));
+    }, 100);
+
+    // 3. Update Dynamic Text
+    updateDynamicText();
+
+    // 4. Calculations
     const heightM = currentHeight / 100;
     const bmi = (currentWeight / (heightM * heightM)).toFixed(1);
-
-    // 3. Calculate BMR (Mifflin-St Jeor for Men - assuming male default for simplicity in this persona)
-    // BMR = 10W + 6.25H - 5A + 5
     const bmr = Math.round((10 * currentWeight) + (6.25 * currentHeight) - (5 * currentAge) + 5);
-    
     const sedentaryBurn = Math.round(bmr * 1.2);
-    const junkIntake = Math.round(bmr * 1.6); // Assumption for bad diet
-    const targetIntake = Math.round(bmr * 1.2 - 300); // Slight deficit
+    const junkIntake = Math.round(bmr * 1.6);
+    const targetIntake = Math.round(bmr * 1.2 - 300);
     const activeBurn = Math.round(bmr * 1.4);
 
-    // 4. Update UI Texts
+    // 5. Update Status UI
+    updateStatusUI(bmi, bmr, sedentaryBurn, targetIntake);
+
+    // 6. Init Charts with small delay to ensure container visibility
+    setTimeout(() => {
+        updateBMIChart(bmi);
+        updateCalorieChart(junkIntake, sedentaryBurn, targetIntake, activeBurn);
+        updateStrengthChart(); 
+        initPlotly();
+    }, 200);
+}
+
+function updateDynamicText() {
+    // Diet Texts
+    if (isVegetarian) {
+        document.getElementById('foodOptimized').innerText = "Plant-Based Proteins";
+        document.getElementById('foodOptimizedDesc').innerText = "Tofu, Lentils, Chickpeas, Edamame, Tempeh.";
+        document.getElementById('foodRuleDesc').innerText = "Rule: Double the beans/tofu, reduce the rice.";
+        document.getElementById('lunchDesc').innerHTML = `<strong>Order:</strong> Chipotle (Sofritas, extra beans, fajita veg, guac) OR Sweetgreen (Tofu/Eggs + Beans).`;
+        document.getElementById('dinnerDesc').innerText = `Order: Grilled Tofu/Paneer/Tempeh + Veggies. Keep carbs low.`;
+    } else {
+        document.getElementById('foodOptimized').innerText = "Grilled / Roasted Proteins";
+        document.getElementById('foodOptimizedDesc').innerText = "Double Chicken/Steak, Grilled Fish, Tandoori.";
+        document.getElementById('foodRuleDesc').innerText = "Rule: Double Meat, No Rice, Extra Veg.";
+        document.getElementById('lunchDesc').innerHTML = `<strong>Order:</strong> Chipotle (No rice, double chicken, guac) OR Sweetgreen (Double protein).`;
+        document.getElementById('dinnerDesc').innerText = `Order: Grilled Chicken/Steak + Veggies. Keep carbs low.`;
+    }
+
+    // Health Warnings
+    if (currentWeight > 120) {
+        document.getElementById('cardioText').innerText = `At ${currentWeight}kg, resting Heart Rate is likely elevated. Efficiency is low.`;
+        document.getElementById('jointText').innerText = `At ${currentWeight}kg, impact forces are dangerous. Running is DEPRECATED.`;
+    } else {
+        document.getElementById('cardioText').innerText = `At ${currentWeight}kg, load is moderate. Focus on endurance.`;
+        document.getElementById('jointText').innerText = `At ${currentWeight}kg, moderate impact allowed, but prioritize form.`;
+    }
+}
+
+function updateStatusUI(bmi, bmr, sedentaryBurn, targetIntake) {
     let statusText = "OPTIMAL";
-    let statusColor = "#10b981"; // Green
+    let statusColor = "#10b981"; 
 
     if (bmi > 25) { statusText = "OVERLOADED"; statusColor = "#fbbf24"; }
     if (bmi > 30) { statusText = "SYSTEM WARNING"; statusColor = "#f59e0b"; }
     if (bmi > 35) { statusText = "CRITICAL LOAD"; statusColor = "#ef4444"; }
-    if (bmi > 40) { statusText = "SYSTEM FAILURE IMMINENT"; statusColor = "#881337"; }
+    if (bmi > 40) { statusText = "SYSTEM FAILURE"; statusColor = "#881337"; }
 
-    document.getElementById('systemStatusText').innerText = statusText;
-    document.getElementById('systemStatusText').style.color = statusColor;
-    document.getElementById('bmiSubtitle').innerHTML = `Current System Status: <span style="color:${statusColor}; font-weight:bold">BMI ${bmi} (${statusText})</span>`;
-    
-    document.getElementById('calorieInsight').innerText = `Your baseline hardware requires ~${bmr} kcal just to idle. Currently, you burn ~${sedentaryBurn} kcal/day. To refactor your weight, target ~${targetIntake} kcal/day.`;
+    const statusEl = document.getElementById('systemStatusText');
+    statusEl.innerText = statusText;
+    statusEl.className = "font-bold font-mono";
+    statusEl.style.color = statusColor;
 
-    // Update warning texts based on weight
-    if (currentWeight > 120) {
-        document.getElementById('cardioText').innerText = `At ${currentWeight}kg, your heart is compiling complex queries 24/7. Resting Heart Rate is likely elevated.`;
-        document.getElementById('jointText').innerText = `At ${currentWeight}kg, impact forces are high. Running is deprecated. Stick to low-impact torque.`;
-    } else {
-        document.getElementById('cardioText').innerText = `At ${currentWeight}kg, cardiovascular load is moderate. Focus on increasing efficiency.`;
-        document.getElementById('jointText').innerText = `At ${currentWeight}kg, you are cleared for moderate impact, but prioritize form first.`;
-    }
-
-    // 5. Update Charts
-    updateBMIChart(bmi);
-    updateCalorieChart(junkIntake, sedentaryBurn, targetIntake, activeBurn);
-    updateStrengthChart(); // Mostly visual re-render
+    document.getElementById('bmiSubtitle').innerHTML = `Current Status: <span style="color:${statusColor}; font-weight:bold">BMI ${bmi} (${statusText})</span>`;
+    document.getElementById('calorieInsight').innerText = `Baseline hardware requires ~${bmr} kcal to idle. Current Burn: ~${sedentaryBurn}. Target Intake: ~${targetIntake} kcal.`;
 }
 
-// --- CHART FUNCTIONS ---
+// --- CHART CONFIGS (FIXED FOR 'CANVAS IN USE' ERROR) ---
+function updateBMIChart(bmi) {
+    // Robust check using Chart.getChart() which works in Chart.js 3+
+    const existingChart = Chart.getChart("bmiGauge");
+    if (existingChart) existingChart.destroy();
 
-function updateBMIChart(bmiVal) {
-    const bmi = parseFloat(bmiVal);
-    // Create data where "Your BMI" is a slice proportional to the value, 
-    // but for a gauge we often just want color segments.
-    // Let's keep the segments static but update the title.
-    
-    if (bmiChartInstance) bmiChartInstance.destroy();
-
-    const bmiCtx = document.getElementById('bmiGauge').getContext('2d');
-    bmiChartInstance = new Chart(bmiCtx, {
+    const ctx = document.getElementById('bmiGauge').getContext('2d');
+    // No global var assignment needed if we use Chart.getChart() next time
+    new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Normal (18-25)', 'Overweight (25-30)', 'Obese (30+)', 'Your Position'],
+            labels: ['Normal', 'Overweight', 'Obese', 'You'],
             datasets: [{
-                data: [25, 15, 60], // Standard distribution roughly
+                data: [25, 15, 60],
                 backgroundColor: ['#10b981', '#fbbf24', '#ef4444'],
                 borderWidth: 0,
                 circumference: 180,
@@ -153,143 +189,99 @@ function updateBMIChart(bmiVal) {
             responsive: true,
             maintainAspectRatio: false,
             cutout: '75%',
-            plugins: {
-                legend: { display: true, position: 'bottom', labels: {boxWidth: 10, color:'#ccc'} },
-                tooltip: { enabled: false },
-                title: {
-                    display: true,
-                    text: `BMI: ${bmi}`,
-                    color: '#fff',
-                    font: { size: 24, weight: 'bold' },
-                    padding: { bottom: 10 }
-                }
-            }
+            plugins: { legend: { display: false }, tooltip: { enabled: false }, title: { display: true, text: `BMI: ${bmi}`, color: '#fff', font: { size: 24 } } }
         }
     });
 }
 
-function updateCalorieChart(junk, currentBurn, targetIn, activeBurn) {
-    if (calorieChartInstance) calorieChartInstance.destroy();
+function updateCalorieChart(junk, current, target, active) {
+    const existingChart = Chart.getChart("calorieChart");
+    if (existingChart) existingChart.destroy();
 
-    const calCtx = document.getElementById('calorieChart').getContext('2d');
-    calorieChartInstance = new Chart(calCtx, {
+    const ctx = document.getElementById('calorieChart').getContext('2d');
+    
+    new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Current Intake', 'Current Burn', 'Target Intake', 'Target Burn'],
             datasets: [{
-                label: 'Calories (kcal)',
-                data: [junk, currentBurn, targetIn, activeBurn],
-                backgroundColor: [
-                    'rgba(239, 68, 68, 0.8)', // Red
-                    'rgba(107, 114, 128, 0.8)', // Gray
-                    'rgba(6, 182, 212, 0.8)', // Cyan
-                    'rgba(59, 130, 246, 0.8)'  // Blue
-                ],
-                borderColor: [
-                    '#ef4444', '#6b7280', '#06b6d4', '#3b82f6'
-                ],
-                borderWidth: 1
+                data: [junk, current, target, active],
+                backgroundColor: ['#ef4444', '#6b7280', '#06b6d4', '#3b82f6'],
+                borderRadius: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                     callbacks: {
-                        title: function(tooltipItems) {
-                            const item = tooltipItems[0];
-                            return item.chart.data.labels[item.dataIndex];
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
         }
     });
 }
 
 function updateStrengthChart() {
-    if (strengthChartInstance) strengthChartInstance.destroy();
+    const existingChart = Chart.getChart("strengthChart");
+    if (existingChart) existingChart.destroy();
 
-    const strengthCtx = document.getElementById('strengthChart').getContext('2d');
-    const weeks = ['Week 1', 'Week 4', 'Week 8', 'Week 12', 'Week 16'];
-    strengthChartInstance = new Chart(strengthCtx, {
+    const ctx = document.getElementById('strengthChart').getContext('2d');
+    new Chart(ctx, {
         type: 'line',
         data: {
-            labels: weeks,
+            labels: ['Week 1', 'Week 4', 'Week 8', 'Week 12', 'Week 16'],
             datasets: [{
-                label: 'Workout Consistency %',
-                data: [20, 50, 70, 85, 95], 
+                label: 'Consistency',
+                data: [20, 50, 70, 85, 95],
                 borderColor: '#06b6d4',
-                backgroundColor: 'rgba(6, 182, 212, 0.2)',
+                backgroundColor: 'rgba(6, 182, 212, 0.1)',
                 fill: true,
                 tension: 0.4
-            }, {
-                label: 'Perceived Effort',
-                data: [80, 60, 50, 40, 30], 
-                borderColor: '#f472b6',
-                borderDash: [5, 5],
-                tension: 0.4,
-                fill: false
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                 tooltip: {
-                     callbacks: {
-                        title: function(tooltipItems) {
-                            return tooltipItems[0].label;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    title: { display: true, text: 'Percentage' }
-                }
-            }
+            scales: { y: { max: 100 } }
         }
     });
 }
 
-// --- INIT ---
+function initPlotly() {
+    // Check if Plotly already exists
+    if(document.getElementById('nutritionScatterContainer').children.length > 0) return;
 
-// Plotly Static Chart (Food Matrix)
-var trace1 = {
-    x: [9, 8, 2], 
-    y: [2, 3, 9], 
-    mode: 'markers+text',
-    type: 'scatter',
-    name: 'Food Types',
-    text: ['Pizza/Burgers', 'Fries/Soda', 'Salads/Proteins'],
-    textposition: 'top center',
-    marker: { size: [30, 25, 35], color: ['#ef4444', '#f59e0b', '#06b6d4'] }
-};
+    var trace1 = {
+        x: [9, 8, 2],
+        y: [2, 3, 9],
+        mode: 'markers+text',
+        type: 'scatter',
+        text: ['Junk', 'Fried', 'Optimized'],
+        textposition: 'top center',
+        marker: { size: [30, 25, 40], color: ['#ef4444', '#f59e0b', '#06b6d4'] }
+    };
 
-var layout = {
-    title: 'The Food Matrix',
-    xaxis: { title: 'Calorie Density (Bad)', range: [0, 10] },
-    yaxis: { title: 'Satiety / Fullness (Good)', range: [0, 10] },
-    margin: { t: 40, b: 40, l: 40, r: 40 },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)',
-    showlegend: false
-};
+    var layout = {
+        margin: { t: 20, b: 40, l: 40, r: 20 },
+        xaxis: { title: 'Calorie Density (Bad)', showgrid: false },
+        yaxis: { title: 'Volume (Good)', showgrid: false },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)'
+    };
 
-document.getElementById('nutritionScatter').style.display = 'none'; 
-var plotlyDiv = document.createElement('div');
-plotlyDiv.style.width = '100%';
-plotlyDiv.style.height = '100%';
-document.getElementById('nutritionScatter').parentElement.appendChild(plotlyDiv);
-Plotly.newPlot(plotlyDiv, [trace1], layout, {responsive: true, displayModeBar: false});
+    Plotly.newPlot('nutritionScatterContainer', [trace1], layout, {responsive: true, displayModeBar: false});
+}
 
-// Run Initial Update
-updateSystemData();
+// Init dummy chart for initial load
+// We do this inside a try-catch in case DOM isn't ready, though script is at end of body.
+try {
+    const existingChart = Chart.getChart("bmiGauge");
+    if (existingChart) existingChart.destroy();
+
+    const dummyCtx = document.getElementById('bmiGauge').getContext('2d');
+    new Chart(dummyCtx, {
+        type: 'doughnut',
+        data: { datasets: [{ data: [1], backgroundColor: ['#374151'], borderWidth: 0, circumference: 180, rotation: 270 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+    });
+} catch(e) {
+    console.log("Waiting for Chart.js init");
+}

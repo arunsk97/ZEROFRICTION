@@ -335,6 +335,42 @@
             </div>
         </section>
 
+        <!-- SECTION 6: API KEY GUIDE -->
+        <section class="border-t border-gray-700 pt-10">
+            <div class="bg-gray-800 rounded-xl p-8 shadow-2xl border border-gray-700">
+                <div class="flex items-center mb-6">
+                    <div class="bg-yellow-500/10 p-3 rounded-full mr-4">
+                        <span class="text-2xl">🔑</span>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">06. Access Protocols: Obtaining Your API Key</h2>
+                        <p class="text-gray-400 text-sm">To use the AI Refactor & Debug tools, you need a Google Gemini API Key.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <h3 class="text-cyan-400 font-bold uppercase text-xs tracking-wider">Initialization Sequence</h3>
+                        <ol class="space-y-4 text-sm text-gray-300 list-decimal list-inside">
+                            <li class="pl-2"><span class="text-white font-bold">Access the Mainframe:</span> Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-cyan-400 hover:text-cyan-300 underline">Google AI Studio</a>.</li>
+                            <li class="pl-2"><span class="text-white font-bold">Authenticate:</span> Sign in with your Google account.</li>
+                            <li class="pl-2"><span class="text-white font-bold">Generate Token:</span> Click the big blue button labeled <strong>"Create API Key"</strong>.</li>
+                            <li class="pl-2"><span class="text-white font-bold">Copy Protocol:</span> Copy the generated key string (starts with `AIza...`).</li>
+                            <li class="pl-2"><span class="text-white font-bold">Inject:</span> Paste it into the input field in the top navigation bar of this dashboard.</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="bg-gray-900 rounded-lg p-6 border border-gray-800 flex flex-col justify-center items-center text-center">
+                        <p class="text-gray-500 text-xs mb-2">Security Protocol</p>
+                        <p class="text-gray-300 text-sm mb-4">Your key is processed locally in your browser. It is not stored on any external server.</p>
+                        <div class="text-xs text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded border border-yellow-500/20">
+                            Status: Free Tier Available
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <footer class="bg-gray-900 text-gray-400 py-10 text-center">
